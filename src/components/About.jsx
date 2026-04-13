@@ -1,9 +1,35 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { fadeUp, fadeRight, scaleUp, viewport } from '../hooks/useScrollAnimation';
+import { fadeUp, fadeRight, viewport } from '../hooks/useScrollAnimation';
 import profileImg from '../assets/profile.jpg';
 
 const About = () => {
+  const imageReveal = {
+    hidden: { opacity: 0, y: 28, filter: 'blur(10px)' },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: {
+        duration: 0.95,
+        ease: [0.2, 0.85, 0.25, 1]
+      }
+    }
+  };
+
+  const ringReveal = {
+    hidden: { opacity: 0, scale: 0.7, rotate: -18 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      rotate: 0,
+      transition: {
+        duration: 1.1,
+        delay: 0.2,
+        ease: [0.16, 1, 0.3, 1]
+      }
+    }
+  };
+
   return (
     <section className="section-container" id="about">
       <motion.div 
@@ -26,13 +52,13 @@ const About = () => {
           viewport={viewport}
         >
           <p>
-            Hello! I'm <span className="text-white font-bold">Abdulaziz</span>, a passionate Software Engineering student dedicated to bridging the gap between complex problems and elegant digital solutions.
+            Hello! I&apos;m <span className="text-white font-bold">Abdulaziz</span>, a passionate Software Engineering student dedicated to bridging the gap between complex problems and elegant digital solutions.
           </p>
           <p>
             My journey in tech is driven by a fascination with <span className="text-gradient font-semibold">AI and Automation</span>. I believe in building software that not only works but also makes an impact in the real world.
           </p>
           <p>
-            Currently, I'm focusing on strengthening my foundations while exploring the cutting edges of machine learning and autonomous systems. I thrive in challenging environments where I can apply my problem-solving skills to create efficient, scalable code.
+            Currently, I&apos;m focusing on strengthening my foundations while exploring the cutting edges of machine learning and autonomous systems. I thrive in challenging environments where I can apply my problem-solving skills to create efficient, scalable code.
           </p>
           <div className="about-stats">
             <div className="stat-item">
@@ -48,7 +74,7 @@ const About = () => {
         
         <motion.div 
           className="about-image-container"
-          variants={scaleUp}
+          variants={imageReveal}
           initial="hidden"
           whileInView="visible"
           viewport={viewport}
@@ -58,9 +84,14 @@ const About = () => {
               <img src={profileImg} alt="Abdulaziz Attia Shams" className="profile-img" />
             </div>
             {/* Visual glow element behind */}
-            <div className="abstract-art" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: -1 }}>
-               <div className="circle circle-1" style={{ width: '420px', height: '420px' }}></div>
-            </div>
+            <motion.div
+              className="abstract-art"
+              variants={ringReveal}
+              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: -1 }}
+            >
+               <div className="circle circle-1 about-decorative-circle"></div>
+            </motion.div>
+
           </div>
         </motion.div>
       </div>

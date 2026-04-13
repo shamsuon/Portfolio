@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Github, Linkedin } from 'lucide-react';
 
 const XIcon = ({ size = 24, className = "" }) => (
@@ -16,15 +16,52 @@ const XIcon = ({ size = 24, className = "" }) => (
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(
+    typeof window !== 'undefined' ? window.scrollY > 70 : false
+  );
+  const mobileMenuRef = useRef(null);
+  const menuButtonRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      setScrolled((prev) => {
+        if (!prev && window.scrollY > 70) return true;
+        if (prev && window.scrollY < 30) return false;
+        return prev;
+      });
     };
     window.addEventListener('scroll', handleScroll);
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event) => {
+      const target = event.target;
+      if (mobileMenuRef.current?.contains(target) || menuButtonRef.current?.contains(target)) {
+        return;
+      }
+      setIsOpen(false);
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('touchstart', handlePointerDown, { passive: true });
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('touchstart', handlePointerDown);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [isOpen]);
 
   const handleScrollTo = (e, targetId) => {
     e.preventDefault();
@@ -63,11 +100,11 @@ const Navbar = () => {
   ];
 
   return (
-    <motion.nav 
+    <motion.nav
       className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}
-      initial={{ y: -100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
+      initial={{ opacity: 0, y: -18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: [0.2, 0.85, 0.25, 1] }}
     >
       <div className="navbar-stars">
         <div className="nav-star"></div>
@@ -90,11 +127,7 @@ const Navbar = () => {
                 onClick={(e) => handleScrollTo(e, link.href)}
               >
                 {link.name}
-                <motion.span 
-                  className="nav-star-dot"
-                  animate={{ opacity: [0, 1, 0], scale: [0.5, 1, 0.5] }}
-                  transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 2 }}
-                />
+                <span className="nav-star-dot" />
               </a>
             </li>
           ))}
@@ -111,27 +144,47 @@ const Navbar = () => {
             <XIcon size={24} />
           </a>
           
-          <button className="mobile-menu-btn" onClick={() => setIsOpen(!isOpen)}>
+          <button ref={menuButtonRef} className="mobile-menu-btn" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
 
       {/* Mobile Menu */}
-      {isOpen && (
-        <div className="mobile-menu glass">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="mobile-nav-link"
-              onClick={(e) => handleScrollTo(e, link.href)}
+      <AnimatePresence>
+        {isOpen && (
+          <>
+            <motion.div
+              className="mobile-menu-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            />
+            <motion.div
+              ref={mobileMenuRef}
+              className="mobile-menu glass"
+              initial={{ opacity: 0, y: -16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.97 }}
+              transition={{ type: "spring", stiffness: 380, damping: 30, mass: 0.75 }}
             >
-              {link.name}
-            </a>
-          ))}
-        </div>
-      )}
+              <div className="mobile-nav-links">
+                {navLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    className="mobile-nav-link"
+                    onClick={(e) => handleScrollTo(e, link.href)}
+                  >
+                    {link.name}
+                  </a>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };

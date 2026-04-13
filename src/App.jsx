@@ -14,7 +14,13 @@ function App() {
   useLayoutEffect(() => {
     // Force scroll to top on every load/refresh
     window.history.scrollRestoration = 'manual';
+    if (window.location.hash) {
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    window.requestAnimationFrame(() => window.scrollTo(0, 0));
   }, []);
 
   return (

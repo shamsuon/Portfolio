@@ -1,9 +1,20 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { fadeUp, staggerContainer, staggerItem, viewport } from '../hooks/useScrollAnimation';
+import { fadeUp, viewport } from '../hooks/useScrollAnimation';
 import { BookOpen, Trophy, Lightbulb } from 'lucide-react';
 
 const Experience = () => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const experienceItemVariants = {
+    hidden: { opacity: 0, y: isMobile ? 40 : 56 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: isMobile ? 0.8 : 0.95,
+        ease: [0.2, 0.85, 0.25, 1]
+      }
+    }
+  };
   const learningItems = [
     {
       title: 'Continuous Learning',
@@ -35,19 +46,18 @@ const Experience = () => {
         <h2 className="section-title">Experience & Learning</h2>
       </motion.div>
 
-      <motion.div 
-        className="experience-grid"
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
+      <div className="experience-grid">
         {learningItems.map((item, idx) => (
           <motion.div 
             key={item.title}
             className="experience-item premium-hover glass"
-            variants={staggerItem}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewport}
+            variants={experienceItemVariants}
+            transition={{ delay: idx * 0.16 }}
           >
+
             <div className="experience-icon-box">{item.icon}</div>
             <div className="experience-content">
               <h3>{item.title}</h3>
@@ -55,7 +65,7 @@ const Experience = () => {
             </div>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 };

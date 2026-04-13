@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { fadeUp, staggerContainer, staggerItem, viewport } from '../hooks/useScrollAnimation';
+import { fadeUp, staggerItem, viewport } from '../hooks/useScrollAnimation';
 import { getContactInfo } from '../utils/security';
 import { 
   Github, 
@@ -173,17 +173,15 @@ const Contact = () => {
         </motion.div>
       </motion.div>
 
-      <motion.div 
-        className="social-cards-container"
-          variants={staggerContainer}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewport}
-        >
-          {socials.map((social) => (
+        <div className="social-cards-container">
+          {socials.map((social, idx) => (
             <motion.div 
               key={social.name}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewport}
               variants={staggerItem}
+              transition={{ delay: idx * 0.08 }}
             >
               <a 
                 href={social.url}
@@ -200,7 +198,8 @@ const Contact = () => {
               </a>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
+
       </div>
     </section>
   );

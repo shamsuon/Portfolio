@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Github, Linkedin, MousePointer2 } from 'lucide-react';
+import { ArrowRight, Github, Linkedin } from 'lucide-react';
+import { viewport } from '../hooks/useScrollAnimation';
 
 const XIcon = ({ size = 24, className = "" }) => (
   <svg 
@@ -14,21 +15,23 @@ const XIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
+const PHRASES = [
+  'Software Engineering Student',
+  'AI & Automation Enthusiast',
+  'Problem Solver',
+];
+
 const Hero = () => {
   const [text, setText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
   const [typingSpeed, setTypingSpeed] = useState(150);
-
-  const phrases = [
-    'Software Engineering Student',
-    'AI & Automation Enthusiast',
-    'Problem Solver',
-  ];
+  const heroContentRef = useRef(null);
+  const greetingRef = useRef(null);
 
   useEffect(() => {
     const handleTyping = () => {
-      const currentPhrase = phrases[loopNum % phrases.length];
+      const currentPhrase = PHRASES[loopNum % PHRASES.length];
       const updatedText = isDeleting 
         ? currentPhrase.substring(0, text.length - 1)
         : currentPhrase.substring(0, text.length + 1);
@@ -49,6 +52,64 @@ const Hero = () => {
     const timer = setTimeout(handleTyping, typingSpeed);
     return () => clearTimeout(timer);
   }, [text, isDeleting, loopNum, typingSpeed]);
+
+  useEffect(() => {
+    const updateWatermarkPosition = () => {
+      if (!heroContentRef.current || !greetingRef.current) return;
+
+      if (window.innerWidth < 769) {
+        heroContentRef.current.style.removeProperty('--hero-watermark-top');
+        return;
+      }
+
+      const navbar = document.querySelector('.navbar');
+      if (!navbar) return;
+
+      const contentTop = heroContentRef.current.getBoundingClientRect().top;
+      const navbarBottom = navbar.getBoundingClientRect().bottom;
+      const greetingTop = greetingRef.current.getBoundingClientRect().top;
+      const middlePoint = (navbarBottom + greetingTop) / 2;
+      const relativeTop = middlePoint - contentTop;
+
+      heroContentRef.current.style.setProperty('--hero-watermark-top', `${relativeTop}px`);
+    };
+
+    updateWatermarkPosition();
+    window.addEventListener('resize', updateWatermarkPosition);
+    window.addEventListener('load', updateWatermarkPosition);
+    const rafId = window.requestAnimationFrame(updateWatermarkPosition);
+
+    return () => {
+      window.removeEventListener('resize', updateWatermarkPosition);
+      window.removeEventListener('load', updateWatermarkPosition);
+      window.cancelAnimationFrame(rafId);
+    };
+  }, []);
+
+  const handleScrollToContact = () => {
+    const targetElement = document.querySelector('#contact');
+    if (!targetElement) return;
+
+    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - 50;
+    const startPosition = window.pageYOffset;
+    const distance = targetPosition - startPosition;
+    const duration = 1900;
+    let start = null;
+
+    const step = (timestamp) => {
+      if (!start) start = timestamp;
+      const progress = timestamp - start;
+      const t = Math.min(progress / duration, 1);
+      const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+      window.scrollTo(0, startPosition + distance * ease);
+      if (progress < duration) {
+        window.requestAnimationFrame(step);
+      }
+    };
+
+    window.requestAnimationFrame(step);
+  };
 
   const container = {
     hidden: { opacity: 0 },
@@ -79,34 +140,34 @@ const Hero = () => {
 
   return (
     <section className="hero-section section-container" id="home">
-      <div className="hero-content" style={{ zIndex: 1, position: 'relative' }}>
+      <div ref={heroContentRef} className="hero-content" style={{ zIndex: 1, position: 'relative' }}>
         <div className="hero-watermark">
           SHAMSUON
         </div>
         <motion.div 
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: false, amount: 0.3 }}
+          viewport={viewport}
           variants={container}
         >
-          <motion.span variants={child} className="hero-greeting">Hi, I'm</motion.span>
-          <div className="hero-name-container" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8em' }}>
-            <h1 className="hero-name" style={{ display: 'flex' }}>
+          <motion.span ref={greetingRef} variants={child} className="hero-greeting">Hi, I&apos;m</motion.span>
+          <div className="hero-name-container">
+            <h1 className="hero-name hero-name-part">
               {"Abdulaziz".split("").map((char, index) => (
                 <motion.span variants={child} key={index} style={{ display: 'inline-block' }}>
                   {char}
                 </motion.span>
               ))}
             </h1>
-            <h1 className="hero-name" style={{ display: 'flex' }}>
+            <h1 className="hero-name hero-name-part">
               {"Attia".split("").map((char, index) => (
                 <motion.span variants={child} key={index} style={{ display: 'inline-block' }}>
                   {char}
                 </motion.span>
               ))}
             </h1>
-            <h1 className="hero-name" style={{ display: 'flex' }}>
-              <span className="text-gradient" style={{ display: 'flex' }}>
+            <h1 className="hero-name hero-name-part">
+              <span className="text-gradient hero-name-gradient">
                 {"Shams".split("").map((char, index) => (
                   <motion.span variants={child} key={index} style={{ display: 'inline-block' }}>
                     {char}
@@ -115,6 +176,7 @@ const Hero = () => {
               </span>
             </h1>
           </div>
+
           
           <motion.div variants={child} className="typing-container">
             <h2 className="hero-title">{text}</h2>
@@ -129,9 +191,9 @@ const Hero = () => {
             <motion.div variants={child}>
               <button 
                 className="btn btn-primary" 
-                onClick={() => window.location.href = '#contact'}
+                onClick={handleScrollToContact}
               >
-                Let's Talk <ArrowRight size={18} />
+                Let&apos;s Talk <ArrowRight size={18} />
               </button>
             </motion.div>
             <div className="hero-socials">
@@ -140,8 +202,8 @@ const Hero = () => {
                   href="https://github.com/shamsuon" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="nav-icon-link neon-icon neon-github"
-                  style={{ scale: 1.3 }}
+                  className="nav-icon-link neon-icon neon-github hero-social-icon"
+
                 >
                   <Github size={28} />
                 </a>
@@ -151,8 +213,8 @@ const Hero = () => {
                   href="https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321?utm_source=share_via&utm_content=profile&utm_medium=member_android" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="nav-icon-link neon-icon neon-linkedin"
-                  style={{ scale: 1.3 }}
+                  className="nav-icon-link neon-icon neon-linkedin hero-social-icon"
+
                 >
                   <Linkedin size={28} />
                 </a>
@@ -162,8 +224,8 @@ const Hero = () => {
                   href="https://x.com/AbdulazizA59247" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="nav-icon-link neon-icon neon-x"
-                  style={{ scale: 1.3 }}
+                  className="nav-icon-link neon-icon neon-x hero-social-icon"
+
                 >
                   <XIcon size={28} />
                 </a>

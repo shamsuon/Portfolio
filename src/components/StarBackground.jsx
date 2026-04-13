@@ -28,9 +28,12 @@ const StarBackground = () => {
   // Fade out stars as we scroll down (fully gone by 800px so it's smooth and unnoticeable)
   const opacity = useTransform(scrollY, [0, 800], [0.7, 0]);
 
-  // Generate 150 stars once
+  // Generate stars once - fewer on mobile for performance
   const stars = useMemo(() => {
-    return Array.from({ length: 150 }).map((_, i) => ({
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const count = isMobile ? 50 : 150;
+    
+    return Array.from({ length: count }).map((_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,

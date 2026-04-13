@@ -1,8 +1,31 @@
 import { motion } from 'framer-motion';
-import { fadeUp, staggerContainer, staggerItem, viewport } from '../hooks/useScrollAnimation';
+import { fadeUp, viewport } from '../hooks/useScrollAnimation';
 import { Github, ExternalLink } from 'lucide-react';
 
 const Projects = () => {
+  const projectCardVariants = {
+    hidden: { opacity: 0, y: 38 },
+    visible: (idx) => ({
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.65,
+        delay: idx * 0.1,
+        ease: [0.2, 0.85, 0.25, 1]
+      }
+    })
+  };
+
+  const imageVariants = {
+    hidden: { opacity: 0, y: 18, filter: 'blur(8px)' },
+    visible: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: { duration: 0.8, delay: 0.12, ease: [0.2, 0.85, 0.25, 1] }
+    }
+  };
+
   const projects = [
     {
       title: 'UNILIFE',
@@ -37,31 +60,33 @@ const Projects = () => {
         <h2 className="section-title">Projects</h2>
       </motion.div>
 
-      <motion.div 
-        className="projects-grid"
-        variants={staggerContainer}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
-        {projects.map((project) => (
+      <div className="projects-grid">
+        {projects.map((project, idx) => (
           <motion.div 
             key={project.title}
-            className="project-card glass premium-hover"
-            variants={staggerItem}
+            className="project-card glass project-card-premium"
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewport}
+            variants={projectCardVariants}
+            custom={idx}
           >
-            <div className="project-card-image">
+            <motion.div 
+              className="project-card-image"
+              variants={imageVariants}
+            >
               {project.image ? (
                 <img src={project.image} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }} />
               ) : (
                 <div className="project-icon-overlay">{project.icon}</div>
               )}
-            </div>
+            </motion.div>
+
             <div className="project-card-content">
               <h3>{project.title}</h3>
               <p>{project.description}</p>
               <div className="project-tech">
-                {project.tech.map(t => <span key={t}>{t}</span>)}
+                {project.tech.map(t => <span key={t} className="tech-tag">{t}</span>)}
               </div>
               <div className="project-links">
                 <a href={project.github} target="_blank" rel="noopener noreferrer" className="project-link neon-icon neon-github" style={{ padding: '12px' }}>
@@ -74,7 +99,7 @@ const Projects = () => {
             </div>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 };

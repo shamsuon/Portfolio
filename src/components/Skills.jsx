@@ -1,10 +1,11 @@
 import { motion } from 'framer-motion';
-import { fadeUp, viewport } from '../hooks/useScrollAnimation';
+import { fadeUp, staggerItem, viewport } from '../hooks/useScrollAnimation';
 import { 
   Code2, 
   Database, 
   GitBranch, 
 } from 'lucide-react';
+
 
 // --- Official Brand SVG Components ---
 const PythonIcon = ({ size = 20 }) => (
@@ -107,30 +108,6 @@ const Skills = () => {
       ]
     }
   ];
-  const sectionVariants = {
-    hidden: { opacity: 1, y: 0 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.8,
-        ease: [0.6, 0.05, -0.01, 0.9],
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 150 },
-    visible: { 
-      opacity: 1, 
-      y: 0, 
-      transition: { 
-        duration: 0.8,
-        ease: [0.16, 1, 0.3, 1] // iOS/Apple-like smooth bezier curve
-      }
-    }
-  };
 
   return (
     <section className="section-container" id="skills">
@@ -145,19 +122,18 @@ const Skills = () => {
         <h2 className="section-title">My Tech Stack</h2>
       </motion.div>
 
-      <motion.div 
-        className="skills-grid" 
-        variants={sectionVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
-        {categories.map((cat) => (
+      <div className="skills-grid"> 
+        {categories.map((cat, idx) => (
           <motion.div 
             key={cat.title}
             className="skill-card glass premium-hover"
-            variants={cardVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewport}
+            variants={staggerItem}
+            transition={{ delay: idx * 0.1 }}
           >
+
             <div className="skill-card-bg" />
             <div className="skill-card-inner">
               <div className="skill-card-header">
@@ -168,9 +144,7 @@ const Skills = () => {
                 {cat.skills.map((skill) => (
                   <motion.li 
                     key={skill.name} 
-                    className="skill-item"
-                    whileHover={{ scale: 1.05, backgroundColor: "rgba(139, 92, 246, 0.15)" }}
-                    transition={{ type: "spring", stiffness: 300, damping: 10 }}
+                    className="skill-item tech-tag"
                   >
                     <span className="tech-icon-small" style={{ display: 'inline-block' }}>{skill.icon}</span>
                     {skill.name}
@@ -181,7 +155,7 @@ const Skills = () => {
             </div>
           </motion.div>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 };
