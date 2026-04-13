@@ -3,8 +3,37 @@ const getDeviceTier = () => {
     return { isMobile: false, isTablet: false };
   }
 
-  const isMobile = window.matchMedia('(max-width: 767px)').matches;
-  const isTablet = window.matchMedia('(min-width: 768px) and (max-width: 1024px)').matches;
+  const bodyTier = document.body?.dataset?.deviceTier;
+  if (bodyTier === 'mobile') return { isMobile: true, isTablet: false };
+  if (bodyTier === 'tablet') return { isMobile: false, isTablet: true };
+
+  const ua = (navigator.userAgent || '').toLowerCase();
+  const mobileUA =
+    navigator.userAgentData?.mobile === true ||
+    /(iphone|ipod|android.*mobile|windows phone|blackberry|mobile)/.test(ua);
+  const tabletUA = /(ipad|tablet|android(?!.*mobile)|kindle|silk|playbook)/.test(ua);
+  const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+  const touchCapable = coarsePointer || navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+  const width = window.innerWidth;
+
+  if (mobileUA) {
+    return { isMobile: true, isTablet: false };
+  }
+
+  if (tabletUA) {
+    return { isMobile: false, isTablet: true };
+  }
+
+  if (touchCapable && width <= 767) {
+    return { isMobile: true, isTablet: false };
+  }
+
+  if (touchCapable && width <= 1100) {
+    return { isMobile: false, isTablet: true };
+  }
+
+  const isMobile = width <= 767;
+  const isTablet = width > 767 && width <= 1024;
 
   return { isMobile, isTablet };
 };
@@ -39,17 +68,6 @@ export const fadeLeft = {
 export const scaleUp = {
   hidden:  { opacity: 0, scale: device.isMobile ? 0.96 : device.isTablet ? 0.93 : 0.9 },
   visible: { opacity: 1, scale: 1, transition: smoothTransition }
-};
-
-export const staggerContainer = {
-  hidden: { opacity: 1 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: device.isMobile ? 0.07 : device.isTablet ? 0.09 : 0.12,
-      delayChildren: device.isMobile ? 0.05 : 0.08
-    }
-  }
 };
 
 export const staggerItem = {

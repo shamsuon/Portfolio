@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -21,6 +21,42 @@ function App() {
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     window.requestAnimationFrame(() => window.scrollTo(0, 0));
+  }, []);
+
+  useEffect(() => {
+    const detectDeviceTier = () => {
+      const ua = (navigator.userAgent || '').toLowerCase();
+      const mobileUA =
+        navigator.userAgentData?.mobile === true ||
+        /(iphone|ipod|android.*mobile|windows phone|blackberry|mobile)/.test(ua);
+      const tabletUA =
+        /(ipad|tablet|android(?!.*mobile)|kindle|silk|playbook)/.test(ua);
+      const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+      const touchCapable = coarsePointer || navigator.maxTouchPoints > 0 || 'ontouchstart' in window;
+      const width = window.innerWidth;
+
+      if (mobileUA) return 'mobile';
+      if (tabletUA) return 'tablet';
+      if (touchCapable && width <= 767) return 'mobile';
+      if (touchCapable && width <= 1100) return 'tablet';
+      return 'desktop';
+    };
+
+    const applyDeviceClass = () => {
+      const tier = detectDeviceTier();
+      document.body.classList.remove('device-mobile', 'device-tablet', 'device-desktop');
+      document.body.classList.add(`device-${tier}`);
+      document.body.dataset.deviceTier = tier;
+    };
+
+    applyDeviceClass();
+    window.addEventListener('resize', applyDeviceClass);
+    window.addEventListener('orientationchange', applyDeviceClass);
+
+    return () => {
+      window.removeEventListener('resize', applyDeviceClass);
+      window.removeEventListener('orientationchange', applyDeviceClass);
+    };
   }, []);
 
   return (
