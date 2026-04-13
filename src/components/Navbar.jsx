@@ -14,16 +14,31 @@ const XIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
+const navLinks = [
+  { name: 'Home', href: '#home' },
+  { name: 'About', href: '#about' },
+  { name: 'Skills', href: '#skills' },
+  { name: 'Projects', href: '#projects' },
+  { name: 'Experience', href: '#experience' },
+  { name: 'Contact', href: '#contact' },
+];
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('Home');
   const [scrolled, setScrolled] = useState(
     typeof window !== 'undefined' ? window.scrollY > 70 : false
   );
+  
   const mobileMenuRef = useRef(null);
   const menuButtonRef = useRef(null);
+  const navContainerRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
+      // Close mobile menu on scroll
+      setIsOpen(false);
+      
       setScrolled((prev) => {
         if (!prev && window.scrollY > 70) return true;
         if (prev && window.scrollY < 30) return false;
@@ -33,6 +48,35 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Track active section on scroll
+  useEffect(() => {
+    const sections = navLinks.map(link => link.href.substring(1));
+
+    const observerOptions = {
+      root: null,
+      rootMargin: '-30% 0px -40% 0px', // Tighter margin for more precise switching
+      threshold: 0.1
+    };
+
+    const handleIntersect = (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const sectionName = navLinks.find(link => link.href === `#${entry.target.id}`)?.name;
+          if (sectionName) setActiveTab(sectionName);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -91,20 +135,9 @@ const Navbar = () => {
     setIsOpen(false);
   };
 
-  const navLinks = [
-    { name: 'About', href: '#about' },
-    { name: 'Skills', href: '#skills' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Experience', href: '#experience' },
-    { name: 'Contact', href: '#contact' },
-  ];
-
   return (
-    <motion.nav
-      className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}
-      initial={{ opacity: 0, y: -18 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.55, ease: [0.2, 0.85, 0.25, 1] }}
+    <nav
+      className={`navbar ${scrolled ? 'navbar-scrolled' : ''} nav--init`}
     >
       <div className="navbar-stars">
         <div className="nav-star"></div>
@@ -112,7 +145,7 @@ const Navbar = () => {
         <div className="nav-star"></div>
       </div>
 
-      <div className="navbar-container">
+      <div className="navbar-container" ref={navContainerRef}>
         <a href="#" className="navbar-logo">
           <span className="text-gradient">AS</span>.Portfolio
         </a>
@@ -123,12 +156,23 @@ const Navbar = () => {
             <li key={link.name} className="nav-item">
               <a 
                 href={link.href} 
-                className="nav-link"
+                className={`nav-link ${activeTab === link.name ? 'active' : ''}`}
                 onClick={(e) => handleScrollTo(e, link.href)}
               >
                 {link.name}
-                <span className="nav-star-dot" />
               </a>
+              {activeTab === link.name && (
+                <motion.div
+                  layoutId="nav-underline"
+                  className="nav-active-underline"
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30
+                  }}
+                />
+              )}
+              <span className="nav-star-dot" />
             </li>
           ))}
         </ul>
@@ -159,33 +203,77 @@ const Navbar = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.22, ease: "easeOut" }}
+              transition={{ duration: 0.4, ease: "easeInOut" }}
+              onClick={() => setIsOpen(false)}
             />
             <motion.div
               ref={mobileMenuRef}
               className="mobile-menu glass"
-              initial={{ opacity: 0, y: -16, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -12, scale: 0.97 }}
-              transition={{ type: "spring", stiffness: 380, damping: 30, mass: 0.75 }}
+              variants={{
+                hidden: { opacity: 0, y: -20, scale: 0.95 },
+                visible: { 
+                  opacity: 1, 
+                  y: 0, 
+                  scale: 1,
+                  transition: {
+                    type: "spring",
+                    stiffness: 100,
+                    damping: 20,
+                    staggerChildren: 0.1,
+                    delayChildren: 0.1
+                  }
+                },
+                exit: { 
+                  opacity: 0, 
+                  y: -15, 
+                  scale: 0.98,
+                  transition: { duration: 0.3 }
+                }
+              }}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
             >
               <div className="mobile-nav-links">
                 {navLinks.map((link) => (
-                  <a
+                  <motion.a
                     key={link.name}
                     href={link.href}
                     className="mobile-nav-link"
+                    variants={{
+                      hidden: { opacity: 0, x: -10 },
+                      visible: { opacity: 1, x: 0 }
+                    }}
                     onClick={(e) => handleScrollTo(e, link.href)}
                   >
                     {link.name}
-                  </a>
+                  </motion.a>
                 ))}
               </div>
+
+              {/* Mobile Social Links */}
+              <motion.div 
+                className="mobile-social-links"
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 }
+                }}
+              >
+                <a href="https://github.com/shamsuon" target="_blank" rel="noopener noreferrer" className="mobile-social-icon neon-github">
+                  <Github size={22} />
+                </a>
+                <a href="https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="mobile-social-icon neon-linkedin">
+                  <Linkedin size={22} />
+                </a>
+                <a href="https://x.com/AbdulazizA59247" target="_blank" rel="noopener noreferrer" className="mobile-social-icon neon-x">
+                  <XIcon size={22} />
+                </a>
+              </motion.div>
             </motion.div>
           </>
         )}
       </AnimatePresence>
-    </motion.nav>
+    </nav>
   );
 };
 

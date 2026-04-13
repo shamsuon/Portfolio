@@ -93,7 +93,7 @@ const Hero = () => {
     const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - 50;
     const startPosition = window.pageYOffset;
     const distance = targetPosition - startPosition;
-    const duration = 1900;
+    const duration = 2800; // Increased for a slower, more cinematic scroll
     let start = null;
 
     const step = (timestamp) => {
