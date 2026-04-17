@@ -37,14 +37,14 @@ const Projects = () => {
       neonClass: 'neon-flutter'
     },
     {
-      title: 'n8n Stock Management',
-      description: 'An advanced automation system that uses Telegram as a mobile UI to manage inventory in Google Sheets, orchestrating data flows with n8n.',
-      tech: ['n8n', 'Telegram API', 'Google Sheets'],
-      image: '/n8n-icon.png',
-      github: 'https://github.com/shamsuon/n8n.git',
+      title: 'Controller',
+      description: 'A professional Bluetooth-based smart home management system featuring a stunning Glassmorphism UI and a robust synchronization engine for real-time hardware interaction.',
+      tech: ['Flutter', 'MQTT', 'Bluetooth SPP', 'Speech AI', 'SQLite'],
+      image: '/smart-home-controller.jpeg',
+      github: 'https://github.com/shamsuon/Controller.git',
       demo: '#',
-      neonClass: 'neon-n8n'
-    }
+      neonClass: 'neon-azure'
+    },
   ];
 
   return (
