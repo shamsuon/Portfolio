@@ -1,5 +1,5 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { fadeUp, staggerItem, viewport } from '../hooks/useScrollAnimation';
 import { getContactInfo } from '../utils/security';
 import { 
   Github, 
@@ -7,10 +7,14 @@ import {
   Facebook, 
   Instagram, 
   Youtube, 
-  Mail 
+  Mail, 
+  Copy, 
+  Check, 
+  Sparkles
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
-const TikTokIcon = ({ size = 24, className = "" }) => (
+const TikTokIcon = ({ size = 22, className = "" }) => (
   <svg 
     width={size} 
     height={size} 
@@ -26,7 +30,7 @@ const TikTokIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-const WhatsAppIcon = ({ size = 24, className = "" }) => (
+const WhatsAppIcon = ({ size = 22, className = "" }) => (
   <svg 
     width={size} 
     height={size} 
@@ -38,7 +42,7 @@ const WhatsAppIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-const TelegramIcon = ({ size = 24, className = "" }) => (
+const TelegramIcon = ({ size = 22, className = "" }) => (
   <svg 
     width={size} 
     height={size} 
@@ -55,7 +59,7 @@ const TelegramIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-const XIcon = ({ size = 24, className = "" }) => (
+const XIcon = ({ size = 20, className = "" }) => (
   <svg 
     width={size} 
     height={size} 
@@ -68,138 +72,156 @@ const XIcon = ({ size = 24, className = "" }) => (
 );
 
 const Contact = () => {
-  const { email, phone } = getContactInfo();
+  const { t, isAr } = useLanguage();
+  const { email, phone, username } = getContactInfo();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyEmail = () => {
+    navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
 
   const socials = [
     { 
       name: 'WhatsApp', 
-      username: 'Chat with me',
+      label: `@${username}`,
       icon: <WhatsAppIcon />, 
-      url: `https://wa.me/${phone}`,
-      neonClass: 'neon-whatsapp'
+      url: `https://wa.me/${phone}?text=${encodeURIComponent(isAr ? 'مرحباً م/ عبدالعزيز' : 'Hello Eng. Abdulaziz')}`,
+      badgeColor: '#25D366'
     },
     { 
       name: 'Telegram', 
-      username: 'Message me',
+      label: `@${username}`,
       icon: <TelegramIcon />, 
-      url: `https://t.me/+${phone}`,
-      neonClass: 'neon-telegram'
+      url: `https://t.me/${username}`,
+      badgeColor: '#0088cc'
     },
     { 
       name: 'LinkedIn', 
-      username: 'Abdulaziz Attia',
-      icon: <Linkedin />, 
-      url: 'https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321?utm_source=share_via&utm_content=profile&utm_medium=member_android',
-      neonClass: 'neon-linkedin'
+      label: isAr ? 'الملف المهني' : 'Professional Profile',
+      icon: <Linkedin size={22} />, 
+      url: 'https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321',
+      badgeColor: '#0a66c2'
     },
     { 
       name: 'GitHub', 
-      username: 'shamsuon',
-      icon: <Github />, 
+      label: isAr ? 'مستودعات الأكواد' : 'Code Repositories',
+      icon: <Github size={22} />, 
       url: 'https://github.com/shamsuon',
-      neonClass: 'neon-github'
+      badgeColor: '#f0f6fc'
     },
     { 
-      name: 'X', 
-      username: 'AbdulazizA59247',
-      icon: <XIcon />, 
+      name: 'X (Twitter)', 
+      label: isAr ? 'تحديثات وآراء' : 'Updates & Thoughts',
+      icon: <XIcon size={20} />, 
       url: 'https://x.com/AbdulazizA59247',
-      neonClass: 'neon-x'
+      badgeColor: '#ffffff'
     },
     { 
       name: 'YouTube', 
-      username: 'AI Code Lab',
-      icon: <Youtube />, 
+      label: 'AI Code Lab',
+      icon: <Youtube size={22} />, 
       url: 'https://youtube.com/@aicodeinglab?si=_Z22cEdYrckp6jcB',
-      neonClass: 'neon-youtube'
+      badgeColor: '#ff0000'
     },
     { 
       name: 'TikTok', 
-      username: 'shamsuon',
-      icon: <TikTokIcon />, 
+      label: '@shamsuon',
+      icon: <TikTokIcon size={22} />, 
       url: 'https://www.tiktok.com/@shamsuon?_r=1&_t=ZS-95TsuurvCI1',
-      neonClass: 'neon-tiktok'
+      badgeColor: '#ff0050'
     },
     { 
       name: 'Instagram', 
-      username: '3bdu_sh2ms',
-      icon: <Instagram />, 
+      label: '@3bdu_sh2ms',
+      icon: <Instagram size={22} />, 
       url: 'https://www.instagram.com/3bdu_sh2ms?igsh=Y2c1eXdkdGRxeDBk',
-      neonClass: 'neon-instagram'
+      badgeColor: '#e4405f'
     },
     { 
       name: 'Facebook', 
-      username: 'Abdulaziz Attia',
-      icon: <Facebook />, 
+      label: 'Abdulaziz Attia',
+      icon: <Facebook size={22} />, 
       url: 'https://www.facebook.com/share/18agXWQhMx/',
-      neonClass: 'neon-facebook'
+      badgeColor: '#1877f2'
     }
   ];
 
-
   return (
     <section className="section-container" id="contact">
-      <motion.div 
-        className="section-header"
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
-        <span className="section-label">05. Connect</span>
-        <h2 className="section-title">Get In Touch</h2>
-      </motion.div>
+      <div className="section-header">
+        <span className="section-label">{t.contact.label}</span>
+        <h2 className="section-title">{t.contact.title}</h2>
+        <p className="section-subtitle">{t.contact.subtitle}</p>
+      </div>
 
-      <div className="contact-wrapper">
-        <motion.div 
-          className="contact-info glass"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewport}
-        >
-          <h3>Let&apos;s build something extraordinary.</h3>
-          <p>Whether you have a question or just want to say hi, I&apos;ll try my best to get back to you!</p>
-        <motion.div variants={fadeUp}>
-          <a href={`mailto:${email}`} className="contact-email-card glass neon-azure">
-            <div className="email-icon-box">
-              <Mail size={32} />
+      <div className="contact-modern-container">
+        {/* Main CTA Card */}
+        <div className="contact-hero-banner glass">
+          <div className="banner-content">
+            <div className="banner-badge">
+              <Sparkles size={14} className="text-cyan-400" />
+              <span>{t.contact.bannerBadge}</span>
             </div>
-            <div className="email-details">
-              <span>Email Me</span>
-              <strong>{email}</strong>
-            </div>
-          </a>
-        </motion.div>
-      </motion.div>
+            <h3 className="banner-heading">{t.contact.bannerHeading}</h3>
+            <p className="banner-subtext">{t.contact.bannerSubtext}</p>
 
-        <div className="social-cards-container">
-          {socials.map((social, idx) => (
-            <motion.div 
-              key={social.name}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewport}
-              variants={staggerItem}
-              transition={{ delay: idx * 0.08 }}
-            >
+            <div className="banner-actions">
               <a 
-                href={social.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`social-link-card glass ${social.neonClass}`}
+                href={`mailto:${email}`} 
+                className="btn btn-hero-primary"
               >
-                <div className="social-card-icon">
-                  {social.icon}
-                </div>
-                <div className="social-card-info">
-                  <span className="platform-name">{social.name}</span>
-                </div>
+                <Mail size={18} />
+                <span>{t.contact.btnEmail}</span>
               </a>
-            </motion.div>
-          ))}
+
+              <button 
+                onClick={handleCopyEmail}
+                className="btn btn-hero-secondary copy-email-btn"
+                title="Copy email to clipboard"
+              >
+                {copied ? (
+                  <>
+                    <Check size={16} className="text-emerald-400" />
+                    <span>{t.contact.copied}</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={16} />
+                    <span>{t.contact.btnCopy}</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
 
+        {/* Social Links Grid */}
+        <div className="contact-social-grid">
+          {socials.map((social, idx) => (
+            <motion.a 
+              key={social.name}
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="social-channel-card glass premium-hover"
+              initial={{ opacity: 0, y: 15 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.1 }}
+              transition={{ delay: idx * 0.04 }}
+              style={{ '--brand-accent': social.badgeColor }}
+            >
+              <div className="social-icon-box">
+                {social.icon}
+              </div>
+              <div className="social-info-wrap">
+                <span className="social-title">{social.name}</span>
+                <span className="social-handle">{social.label}</span>
+              </div>
+            </motion.a>
+          ))}
+        </div>
       </div>
     </section>
   );

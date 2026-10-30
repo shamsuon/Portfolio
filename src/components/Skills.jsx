@@ -1,13 +1,17 @@
 import { motion } from 'framer-motion';
-import { fadeUp, staggerItem, viewport } from '../hooks/useScrollAnimation';
 import { 
-  Code2, 
+  Smartphone, 
+  Sparkles, 
   Database, 
+  Cpu, 
+  Layers, 
   GitBranch, 
+  Terminal,
+  Code2
 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
-
-// --- Official Brand SVG Components ---
+// Brand SVGs
 const PythonIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <path d="M11.97 0C5.29 0 5.62 2.88 5.62 2.88l.01 3L12 5.88V4.41h5.88V12c0 2.22-1.89 2.12-2.12 2.12H5.88V6.12H1.35S0 6.12 0 12.12s1.35 6 1.35 6h2.24v-3l6.41.01V16.6H4.12v7.5s0 2.88 6.7 2.88 6.71-2.88 6.71-2.88v-3l-.01-5.77s.11-6.13-5.55-6.13z"/>
@@ -17,12 +21,6 @@ const PythonIcon = ({ size = 20 }) => (
 const CPlusPlusIcon = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <path d="M22.101 11.536h-3.792v-3.024h-2.304v3.024H12.98v2.112h3.024v3.024h2.304v-3.024h3.793v-2.112zm-8.818 5.485c-.972.84-2.226 1.259-3.762 1.259-2.25 0-3.996-.863-5.238-2.589C3.041 12.44 3.041 9.56 4.283 6.32c1.242-1.726 2.988-2.589 5.238-2.589 1.536 0 2.79.423 3.762 1.269l1.623-1.623C13.296 1.769 11.454 1 9.521 1 5.925 1 3.12 2.373 1.104 5.119-.912 7.865-.912 12.135 1.104 14.881 3.12 17.627 5.925 19 9.521 19c1.933 0 3.775-.769 5.385-2.307l-1.623-1.672z"/>
-  </svg>
-);
-
-const CIcon = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M11.936 17.021c-.972.84-2.226 1.259-3.762 1.259-2.25 0-3.996-.863-5.238-2.589-1.242-3.251-1.242-6.131 0-9.371 1.242-1.726 2.988-2.589 5.238-2.589 1.536 0 2.79.423 3.762 1.269l1.623-1.623C13.111 1.769 11.269 1 9.336 1 5.74 1 2.935 2.373.919 5.119c-2.016 2.746-2.016 7.016 0 9.762 2.016 2.746 4.821 4.119 8.417 4.119 1.933 0 3.775-.769 5.385-2.307l-1.623-1.672z"/>
   </svg>
 );
 
@@ -74,85 +72,74 @@ const N8NIcon = ({ size = 20 }) => (
   </svg>
 );
 
-
-
 const Skills = () => {
-  const categories = [
-    {
-      title: 'Languages',
-      icon: <Code2 className="text-violet-400" />,
-      skills: [
-        { name: 'Python', icon: <PythonIcon /> },
-        { name: 'C++', icon: <CPlusPlusIcon /> },
-        { name: 'C', icon: <CIcon /> },
-        { name: 'Java', icon: <JavaIcon /> },
-        { name: 'Dart', icon: <DartIcon /> }
-      ]
-    },
-    {
-      title: 'Frameworks & DB',
-      icon: <Database className="text-cyan-400" />,
-      skills: [
-        { name: 'Flutter', icon: <FlutterIcon /> },
-        { name: 'MySQL', icon: <MySQLIcon /> },
-        { name: 'SQLite', icon: <SQLiteIcon /> }
-      ]
-    },
-    {
-      title: 'Tools & DevOps',
-      icon: <GitBranch className="text-pink-400" />,
-      skills: [
-        { name: 'Git', icon: <GitIcon /> },
-        { name: 'GitHub', icon: <GithubIcon /> },
-        { name: 'n8n Automation', icon: <N8NIcon /> }
-      ]
-    }
+  const { t } = useLanguage();
+
+  const categoryIcons = [
+    <Smartphone key="c1" className="cat-icon text-cyan-400" size={24} />,
+    <Sparkles key="c2" className="cat-icon text-violet-400" size={24} />,
+    <Database key="c3" className="cat-icon text-emerald-400" size={24} />,
+  ];
+
+  const accents = ['cyan', 'violet', 'emerald'];
+
+  // Icons map for each skill
+  const skillIcons = [
+    // Category 1
+    [<FlutterIcon key="s1" />, <DartIcon key="s2" />, <Smartphone key="s3" size={18} />, <Layers key="s4" size={18} />, <Code2 key="s5" size={18} />, <SQLiteIcon key="s6" />],
+    // Category 2
+    [<Sparkles key="s7" size={18} />, <N8NIcon key="s8" />, <PythonIcon key="s9" />, <Cpu key="s10" size={18} />, <Terminal key="s11" size={18} />, <GitBranch key="s12" size={18} />],
+    // Category 3
+    [<SQLiteIcon key="s13" />, <MySQLIcon key="s14" />, <GitIcon key="s15" />, <GithubIcon key="s16" />, <CPlusPlusIcon key="s17" />, <JavaIcon key="s18" />],
   ];
 
   return (
     <section className="section-container" id="skills">
-      <motion.div 
-        className="section-header"
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
-        <span className="section-label">02. Expertise</span>
-        <h2 className="section-title">My Tech Stack</h2>
-      </motion.div>
+      <div className="section-header">
+        <span className="section-label">{t.skills.label}</span>
+        <h2 className="section-title">{t.skills.title}</h2>
+        <p className="section-subtitle">{t.skills.subtitle}</p>
+      </div>
 
-      <div className="skills-grid"> 
-        {categories.map((cat, idx) => (
+      <div className="skills-category-grid"> 
+        {t.skills.categories.map((cat, idx) => (
           <motion.div 
             key={cat.title}
-            className="skill-card glass premium-hover"
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewport}
-            variants={staggerItem}
-            transition={{ delay: idx * 0.1 }}
+            className={`skill-category-card glass premium-hover accent-${accents[idx]}`}
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: idx * 0.1 }}
           >
-
-            <div className="skill-card-bg" />
-            <div className="skill-card-inner">
-              <div className="skill-card-header">
-                <div className="skill-icon-box">{cat.icon}</div>
-                <h3>{cat.title}</h3>
+            {/* Card Header */}
+            <div className="skill-cat-header">
+              <div className="skill-cat-icon-box">
+                {categoryIcons[idx]}
               </div>
-              <ul className="skill-list">
-                {cat.skills.map((skill) => (
-                  <motion.li 
-                    key={skill.name} 
-                    className="skill-item tech-tag"
-                  >
-                    <span className="tech-icon-small" style={{ display: 'inline-block' }}>{skill.icon}</span>
-                    {skill.name}
-                  </motion.li>
-                ))}
-              </ul>
-              <div className="scanline"></div>
+              <div className="skill-cat-title-wrap">
+                <span className="skill-cat-badge">{cat.badge}</span>
+                <h3 className="skill-cat-title">{cat.title}</h3>
+              </div>
             </div>
+
+            <p className="skill-cat-description">{cat.desc}</p>
+
+            {/* Skill Chips Grid */}
+            <div className="skill-chips-grid">
+              {cat.skills.map((skill, sIdx) => (
+                <div key={skill.name} className="skill-chip glass">
+                  <div className="skill-chip-icon">
+                    {skillIcons[idx][sIdx]}
+                  </div>
+                  <div className="skill-chip-info">
+                    <span className="skill-chip-name">{skill.name}</span>
+                    <span className="skill-chip-tag">{skill.tag}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="skill-cat-glow-line" />
           </motion.div>
         ))}
       </div>

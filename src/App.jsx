@@ -9,8 +9,9 @@ import Contact from './components/Contact';
 import Footer from './components/Footer';
 import Background from './components/Background';
 import StarBackground from './components/StarBackground';
+import { LanguageProvider } from './context/LanguageContext';
 
-function App() {
+function MainContent() {
   useLayoutEffect(() => {
     // Force scroll to top on every load/refresh
     window.history.scrollRestoration = 'manual';
@@ -77,5 +78,12 @@ function App() {
   );
 }
 
-export default App;
+function App() {
+  return (
+    <LanguageProvider>
+      <MainContent />
+    </LanguageProvider>
+  );
+}
 
+export default App;

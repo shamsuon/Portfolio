@@ -1,99 +1,120 @@
 import { motion } from 'framer-motion';
-import { fadeUp, fadeRight, viewport } from '../hooks/useScrollAnimation';
-import profileImg from '../assets/profile.jpg';
+import { 
+  Smartphone, 
+  Sparkles, 
+  Cpu, 
+  CheckCircle,
+  Zap
+} from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const About = () => {
-  const imageReveal = {
-    hidden: { opacity: 0, y: 28, filter: 'blur(10px)' },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      transition: {
-        duration: 0.95,
-        ease: [0.2, 0.85, 0.25, 1]
-      }
-    }
-  };
+  const { t } = useLanguage();
 
-  const ringReveal = {
-    hidden: { opacity: 0, scale: 0.7, rotate: -18 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      rotate: 0,
-      transition: {
-        duration: 1.1,
-        delay: 0.2,
-        ease: [0.16, 1, 0.3, 1]
-      }
-    }
-  };
+  const pillarIcons = [
+    <Smartphone key="p1" className="pillar-icon text-cyan-400" size={26} />,
+    <Sparkles key="p2" className="pillar-icon text-violet-400" size={26} />,
+    <Cpu key="p3" className="pillar-icon text-emerald-400" size={26} />
+  ];
 
   return (
     <section className="section-container" id="about">
-      <motion.div 
-        className="section-header"
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
-        <span className="section-label">01. Background</span>
-        <h2 className="section-title">About Me</h2>
-      </motion.div>
-      
-      <div className="about-grid">
-        <motion.div 
-          className="about-text"
-          variants={fadeRight}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewport}
-        >
-          <p>
-            Hello! I&apos;m <span className="text-white font-bold">Abdulaziz</span>, a passionate Software Engineering student dedicated to bridging the gap between complex problems and elegant digital solutions.
-          </p>
-          <p>
-            My journey in tech is driven by a fascination with <span className="text-gradient font-semibold">AI and Automation</span>. I believe in building software that not only works but also makes an impact in the real world.
-          </p>
-          <p>
-            Currently, I&apos;m focusing on strengthening my foundations while exploring the cutting edges of machine learning and autonomous systems. I thrive in challenging environments where I can apply my problem-solving skills to create efficient, scalable code.
-          </p>
-          <div className="about-stats">
-            <div className="stat-item">
-              <span className="stat-number">4.0</span>
-              <span className="stat-label">Focus</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">10+</span>
-              <span className="stat-label">Projects</span>
-            </div>
-          </div>
-        </motion.div>
-        
-        <motion.div 
-          className="about-image-container"
-          variants={imageReveal}
-          initial="hidden"
-          whileInView="visible"
-          viewport={viewport}
-        >
-          <div className="profile-image-container">
-            <div className="profile-frame">
-              <img src={profileImg} alt="Abdulaziz Attia Shams" className="profile-img" />
-            </div>
-            {/* Visual glow element behind */}
-            <motion.div
-              className="abstract-art"
-              variants={ringReveal}
-              style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: -1 }}
-            >
-               <div className="circle circle-1 about-decorative-circle"></div>
-            </motion.div>
+      <div className="section-header">
+        <span className="section-label">{t.about.label}</span>
+        <h2 className="section-title">{t.about.title}</h2>
+        <p className="section-subtitle">{t.about.subtitle}</p>
+      </div>
 
+      <div className="about-modern-grid">
+        {/* Left Side: Story & Narrative */}
+        <div className="about-story-card glass">
+          <div className="card-badge-glow">
+            <Zap size={14} />
+            <span>{t.about.badge}</span>
           </div>
-        </motion.div>
+
+          <h3 className="about-headline">
+            {t.about.headline}
+          </h3>
+
+          <p className="about-text">{t.about.p1}</p>
+          <p className="about-text">{t.about.p2}</p>
+          <p className="about-text">{t.about.p3}</p>
+
+          {/* Key Checklist */}
+          <div className="about-checklist">
+            {t.about.highlights.map((item, idx) => (
+              <div key={idx} className="checklist-item">
+                <CheckCircle size={17} className="check-icon" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Metrics */}
+          <div className="about-stats-strip">
+            <div className="stat-box">
+              <span className="stat-num text-gradient">4.0</span>
+              <span className="stat-desc">{t.about.stats.focus}</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-num text-gradient">10+</span>
+              <span className="stat-desc">{t.about.stats.projects}</span>
+            </div>
+            <div className="stat-box">
+              <span className="stat-num text-gradient">100%</span>
+              <span className="stat-desc">{t.about.stats.specialization}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: 3 Feature Pillars */}
+        <div className="about-pillars-column">
+          {t.about.pillars.map((pillar, idx) => (
+            <motion.div 
+              key={pillar.title}
+              className="about-pillar-card glass premium-hover"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+            >
+              <div className="pillar-header">
+                <div className="pillar-icon-wrapper">
+                  {pillarIcons[idx]}
+                </div>
+                <div>
+                  <h4 className="pillar-title">{pillar.title}</h4>
+                  <span className="pillar-tagline">{pillar.tagline}</span>
+                </div>
+              </div>
+              <p className="pillar-description">{pillar.desc}</p>
+            </motion.div>
+          ))}
+
+          {/* Code Philosophy Box */}
+          <div className="about-code-snippet-box glass">
+            <div className="code-snippet-header">
+              <div className="code-dots">
+                <span className="code-dot red" />
+                <span className="code-dot yellow" />
+                <span className="code-dot green" />
+              </div>
+              <span className="code-filename joyboy-handwritten" style={{ fontSize: '1rem', color: '#38bdf8' }}>
+                joyboy.dev // clean_architecture.dart
+              </span>
+            </div>
+            <pre className="code-snippet-body">
+              <code>{`class DeveloperProfile {
+  final String alias = 'joyboy.dev';
+  final String track = 'Mobile App Development (Flutter)';
+  final String superpower = 'AI Integration & Automation';
+  
+  void buildExperience() => deliverSmooth60FpsApps();
+}`}</code>
+            </pre>
+          </div>
+        </div>
       </div>
     </section>
   );

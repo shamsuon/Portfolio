@@ -1,99 +1,116 @@
 import { motion } from 'framer-motion';
-import { fadeUp, viewport } from '../hooks/useScrollAnimation';
-import { Github, ExternalLink } from 'lucide-react';
+import { Github, ExternalLink, Smartphone, Sparkles, Cpu } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const Projects = () => {
-  const projectCardVariants = {
-    hidden: { opacity: 0, y: 38 },
-    visible: (idx) => ({
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.65,
-        delay: idx * 0.1,
-        ease: [0.2, 0.85, 0.25, 1]
-      }
-    })
-  };
+  const { t } = useLanguage();
 
-  const imageVariants = {
-    hidden: { opacity: 0, y: 18, filter: 'blur(8px)' },
-    visible: {
-      opacity: 1,
-      y: 0,
-      filter: 'blur(0px)',
-      transition: { duration: 0.8, delay: 0.12, ease: [0.2, 0.85, 0.25, 1] }
-    }
-  };
-
-  const projects = [
-    {
-      title: 'UNILIFE',
-      description: 'A comprehensive university life management application built with Flutter, designed to streamline academic resources and student productivity at Delta Technological University.',
-      tech: ['Flutter', 'Dart', 'Mobile Dev'],
-      image: '/unilife-icon.png',
-      github: 'https://github.com/shamsuon/UNILIFE.git',
-      demo: '#',
-      neonClass: 'neon-flutter'
-    },
-    {
-      title: 'Controller',
-      description: 'A professional Bluetooth-based smart home management system featuring a stunning Glassmorphism UI and a robust synchronization engine for real-time hardware interaction.',
-      tech: ['Flutter', 'MQTT', 'Bluetooth SPP', 'Speech AI', 'SQLite'],
-      image: '/smart-home-controller.jpeg',
-      github: 'https://github.com/shamsuon/Controller.git',
-      demo: '#',
-      neonClass: 'neon-azure'
-    },
+  const projectImages = [
+    '/unilife-icon.png',
+    '/smart-home-controller.jpeg',
+    null
   ];
+
+  const projectLinks = [
+    { github: 'https://github.com/shamsuon/UNILIFE.git', demo: 'https://github.com/shamsuon/UNILIFE.git' },
+    { github: 'https://github.com/shamsuon/Controller.git', demo: 'https://github.com/shamsuon/Controller.git' },
+    { github: 'https://github.com/shamsuon', demo: 'https://github.com/shamsuon' }
+  ];
+
+  const projectCategoryIcons = [
+    <Smartphone key="i1" size={14} />,
+    <Cpu key="i2" size={14} />,
+    <Sparkles key="i3" size={14} />
+  ];
+
+  const projectAccents = ['cyan', 'violet', 'emerald'];
 
   return (
     <section className="section-container" id="projects">
-      <motion.div 
-        className="section-header"
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="visible"
-        viewport={viewport}
-      >
-        <span className="section-label">03. Featured Work</span>
-        <h2 className="section-title">Projects</h2>
-      </motion.div>
+      <div className="section-header">
+        <span className="section-label">{t.projects.label}</span>
+        <h2 className="section-title">{t.projects.title}</h2>
+        <p className="section-subtitle">{t.projects.subtitle}</p>
+      </div>
 
-      <div className="projects-grid">
-        {projects.map((project, idx) => (
+      <div className="projects-modern-grid">
+        {t.projects.items.map((project, idx) => (
           <motion.div 
             key={project.title}
-            className="project-card glass project-card-premium"
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewport}
-            variants={projectCardVariants}
-            custom={idx}
+            className={`project-modern-card glass premium-hover accent-${projectAccents[idx]}`}
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.15 }}
+            transition={{ duration: 0.5, delay: idx * 0.1 }}
           >
-            <motion.div 
-              className="project-card-image"
-              variants={imageVariants}
-            >
-              {project.image ? (
-                <img src={project.image} alt={project.title} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '16px' }} />
+            {/* Visual Media Box */}
+            <div className="project-media-wrapper">
+              {projectImages[idx] ? (
+                <div className="project-image-box">
+                  <img 
+                    src={projectImages[idx]} 
+                    alt={project.title} 
+                    className="project-cover-img" 
+                  />
+                  <div className="project-media-gradient-overlay" />
+                </div>
               ) : (
-                <div className="project-icon-overlay">{project.icon}</div>
+                <div className="project-fallback-visual">
+                  <div className="fallback-inner-glow" />
+                  <Sparkles size={44} className="fallback-icon text-emerald-400" />
+                  <span className="fallback-label joyboy-handwritten" style={{ fontSize: '1.25rem' }}>
+                    joyboy.dev // AI Workflows
+                  </span>
+                </div>
               )}
-            </motion.div>
 
-            <div className="project-card-content">
-              <h3>{project.title}</h3>
-              <p>{project.description}</p>
-              <div className="project-tech">
-                {project.tech.map(t => <span key={t} className="tech-tag">{t}</span>)}
+              {/* Category Floating Pill */}
+              <div className="project-category-pill">
+                {projectCategoryIcons[idx]}
+                <span>{project.category}</span>
               </div>
-              <div className="project-links">
-                <a href={project.github} target="_blank" rel="noopener noreferrer" className="project-link neon-icon neon-github" style={{ padding: '12px' }}>
-                  <Github size={32} />
+            </div>
+
+            {/* Project Content */}
+            <div className="project-details">
+              <div className="project-header-row">
+                <h3 className="project-heading">{project.title}</h3>
+                <span className="project-badge-pill">{project.badge}</span>
+              </div>
+
+              <p className="project-summary">{project.desc}</p>
+
+              {/* Tech Tags */}
+              <div className="project-tags-list">
+                {project.tech.map((tag) => (
+                  <span key={tag} className="project-tag-item">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+
+              {/* Card Footer Links */}
+              <div className="project-actions-row">
+                <a 
+                  href={projectLinks[idx].github} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="project-btn-icon"
+                  title="GitHub"
+                >
+                  <Github size={18} />
+                  <span>{t.projects.btnCode}</span>
                 </a>
-                <a href={project.demo} className="project-link neon-icon neon-azure" style={{ padding: '12px' }}>
-                  <ExternalLink size={28} />
+
+                <a 
+                  href={projectLinks[idx].demo} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="project-btn-link"
+                  title="Explore"
+                >
+                  <span>{t.projects.btnExplore}</span>
+                  <ExternalLink size={16} />
                 </a>
               </div>
             </div>

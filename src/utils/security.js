@@ -7,12 +7,15 @@ const CONTACT_DATA = {
   // Encoded: abdulazizattiaabdulaziz@gmail.com
   email: 'YWJkdWxheml6YXR0aWFhYmR1bGF6aXpAZ21haWwuY29t',
   // Encoded: 201094038468
-  phone: 'MjAxMDk0MDM4NDY4'
+  phone: 'MjAxMDk0MDM4NDY4',
+  // Encoded: Eng_abdulaziz_attia
+  username: 'RW5nX2FiZHVsYXppel9hdHRpYQ=='
 };
 
 export const getContactInfo = () => {
   return {
     email: atob(CONTACT_DATA.email),
-    phone: atob(CONTACT_DATA.phone)
+    phone: atob(CONTACT_DATA.phone),
+    username: atob(CONTACT_DATA.username)
   };
 };

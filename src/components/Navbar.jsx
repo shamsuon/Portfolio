@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Github, Linkedin } from 'lucide-react';
+import { Menu, X, Github, Linkedin, Globe } from 'lucide-react';
+import { LiquidGlass } from 'quick-liquid/react';
+import { useLanguage } from '../context/LanguageContext';
 
-const XIcon = ({ size = 24, className = "" }) => (
+const XIcon = ({ size = 20, className = "" }) => (
   <svg 
     width={size} 
     height={size} 
@@ -14,70 +16,103 @@ const XIcon = ({ size = 24, className = "" }) => (
   </svg>
 );
 
-const navLinks = [
-  { name: 'Home', href: '#home' },
-  { name: 'About', href: '#about' },
-  { name: 'Skills', href: '#skills' },
-  { name: 'Projects', href: '#projects' },
-  { name: 'Experience', href: '#experience' },
-  { name: 'Contact', href: '#contact' },
-];
-
 const Navbar = () => {
+  const { t, isAr, toggleLang } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('Home');
-  const [scrolled, setScrolled] = useState(
-    typeof window !== 'undefined' ? window.scrollY > 70 : false
-  );
+  const [activeTab, setActiveTab] = useState(t.nav.home);
+  const [scrolled, setScrolled] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: -200, y: -200, opacity: 0 });
   
+  const isScrollingRef = useRef(false);
+  const scrollTimeoutRef = useRef(null);
+  const programmaticScrollRef = useRef(false);
+  const programmaticTimeoutRef = useRef(null);
+  // The "real" active tab from scroll position or click — hover doesn't change this
+  const scrollActiveRef = useRef(t.nav.home);
   const mobileMenuRef = useRef(null);
   const menuButtonRef = useRef(null);
-  const navContainerRef = useRef(null);
+
+  // Sync activeTab when language changes
+  useEffect(() => {
+    scrollActiveRef.current = t.nav.home;
+    setActiveTab(t.nav.home);
+  }, [t]);
+
+  const handlePointerMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      opacity: 1
+    });
+  };
+
+  const handlePointerLeave = () => {
+    setMousePos(prev => ({ ...prev, opacity: 0 }));
+  };
+
+  const navLinks = useMemo(() => [
+    { name: t.nav.home, href: '#home', id: 'home' },
+    { name: t.nav.about, href: '#about', id: 'about' },
+    { name: t.nav.skills, href: '#skills', id: 'skills' },
+    { name: t.nav.projects, href: '#projects', id: 'projects' },
+    { name: t.nav.journey, href: '#experience', id: 'experience' },
+    { name: t.nav.contact, href: '#contact', id: 'contact' },
+  ], [t]);
 
   useEffect(() => {
     const handleScroll = () => {
-      // Close mobile menu on scroll
+      isScrollingRef.current = true;
+      clearTimeout(scrollTimeoutRef.current);
+      scrollTimeoutRef.current = setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 250);
+
       setIsOpen(false);
-      
-      setScrolled((prev) => {
-        if (!prev && window.scrollY > 70) return true;
-        if (prev && window.scrollY < 30) return false;
-        return prev;
-      });
+      setScrolled(window.scrollY > 30);
     };
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeoutRef.current);
+      clearTimeout(programmaticTimeoutRef.current);
+    };
   }, []);
 
-  // Track active section on scroll
+  // Track active section on scroll ONLY when user physically scrolls the page
   useEffect(() => {
-    const sections = navLinks.map(link => link.href.substring(1));
+    const sectionIds = ['home', 'about', 'skills', 'projects', 'experience', 'contact'];
 
     const observerOptions = {
       root: null,
-      rootMargin: '-30% 0px -40% 0px', // Tighter margin for more precise switching
+      rootMargin: '-25% 0px -40% 0px',
       threshold: 0.1
     };
 
     const handleIntersect = (entries) => {
+      // Skip if NOT a real manual scroll, or if this is a programmatic smooth scroll from clicking a tab
+      if (!isScrollingRef.current || programmaticScrollRef.current) return;
+
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          const sectionName = navLinks.find(link => link.href === `#${entry.target.id}`)?.name;
-          if (sectionName) setActiveTab(sectionName);
+          const matched = navLinks.find(link => link.id === entry.target.id);
+          if (matched) {
+            scrollActiveRef.current = matched.name;
+            setActiveTab(matched.name);
+          }
         }
       });
     };
 
     const observer = new IntersectionObserver(handleIntersect, observerOptions);
-    
-    sections.forEach(id => {
+    sectionIds.forEach(id => {
       const el = document.getElementById(id);
       if (el) observer.observe(el);
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [navLinks]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -91,9 +126,7 @@ const Navbar = () => {
     };
 
     const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        setIsOpen(false);
-      }
+      if (event.key === 'Escape') setIsOpen(false);
     };
 
     document.addEventListener('mousedown', handlePointerDown);
@@ -107,168 +140,260 @@ const Navbar = () => {
     };
   }, [isOpen]);
 
-  const handleScrollTo = (e, targetId) => {
+  const handleScrollTo = (e, targetId, linkName) => {
     e.preventDefault();
     const targetElement = document.querySelector(targetId);
     if (!targetElement) return;
 
-    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - 50; // 50px offset for navbar
-    const startPosition = window.pageYOffset;
-    const distance = targetPosition - startPosition;
-    const duration = 1500; // 1.5 seconds - Slow cinematic scroll!
-    let start = null;
-
-    function step(timestamp) {
-      if (!start) start = timestamp;
-      const progress = timestamp - start;
-      const t = Math.min(progress / duration, 1);
-      // Ease In Out Cubic
-      const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-      
-      window.scrollTo(0, startPosition + distance * ease);
-      if (progress < duration) {
-        window.requestAnimationFrame(step);
-      }
+    // Immediate visual feedback — set active tab right away
+    if (linkName) {
+      scrollActiveRef.current = linkName;
+      setActiveTab(linkName);
     }
-    
-    window.requestAnimationFrame(step);
+
+    // Lock the observer: prevent IntersectionObserver from changing the tab
+    // during the smooth scroll animation (which crosses multiple sections)
+    programmaticScrollRef.current = true;
+    clearTimeout(programmaticTimeoutRef.current);
+    programmaticTimeoutRef.current = setTimeout(() => {
+      programmaticScrollRef.current = false;
+    }, 900); // smooth scroll typically takes ~600-800ms
+
+    const targetPosition = targetElement.getBoundingClientRect().top + window.pageYOffset - 65;
+    window.scrollTo({
+      top: targetPosition,
+      behavior: 'smooth'
+    });
     setIsOpen(false);
   };
 
   return (
-    <nav
-      className={`navbar ${scrolled ? 'navbar-scrolled' : ''} nav--init`}
-    >
-      <div className="navbar-stars">
-        <div className="nav-star"></div>
-        <div className="nav-star"></div>
-        <div className="nav-star"></div>
-      </div>
+    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
+      {/* Ambient optical backlight behind the glass to make the SVG refraction immediately visible */}
+      <div className="navbar-backdrop-glow" aria-hidden="true" />
 
-      <div className="navbar-container" ref={navContainerRef}>
-        <a href="#" className="navbar-logo">
-          <span className="text-gradient">AS</span>.Portfolio
+      <LiquidGlass
+        config={{
+          material: 'clear',
+          refractionMode: 'svg',
+          blur: scrolled ? 7 : 4.5,
+          saturation: 1.6,
+          refractionStrength: 28,
+          bezelWidth: 36,
+          thickness: 24,
+          ior: 1.52,
+          lightAngle: -45,
+          chromaticAberration: 0.22,
+          borderRadius: 999,
+          dynamicLighting: true,
+          hoverLighting: true,
+          cursorTracking: true,
+          edgeHighlight: 0.95,
+          specularStrength: 0.42,
+          tint: '255, 255, 255',
+          tintOpacity: 0.035,
+          elevation: 1.2,
+        }}
+        liquidPress={{ scale: 0.99, squish: 0.015 }}
+        className="navbar-container"
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+      >
+        {/* Dynamic pointer spotlight glow that tracks the mouse over the glass */}
+        <div 
+          className="nav-cursor-spotlight"
+          style={{
+            transform: `translate(${mousePos.x}px, ${mousePos.y}px) translate(-50%, -50%)`,
+            opacity: mousePos.opacity
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Brand Logo & joyboy.dev signature */}
+        <a 
+          href="#home" 
+          className="navbar-brand"
+          onClick={(e) => handleScrollTo(e, '#home', t.nav.home)}
+        >
+          <div className="brand-logo-badge">
+            <span className="brand-letters">AS</span>
+          </div>
+          <div className="brand-text-wrap">
+            <div className="brand-title-row">
+              <span className="brand-name">
+                {isAr ? 'عبدالعزيز شمس' : 'Abdulaziz'}
+                <span className="brand-dot">.</span>
+              </span>
+              <span className="brand-joyboy-tag joyboy-handwritten">joyboy.dev</span>
+            </div>
+            <span className="brand-role">
+              {isAr ? 'مطور موبايل وذكاء اصطناعي' : 'Mobile & AI Dev'}
+            </span>
+          </div>
         </a>
 
-        {/* Desktop Menu */}
-        <ul className="nav-links">
-          {navLinks.map((link) => (
-            <li key={link.name} className="nav-item">
-              <a 
-                href={link.href} 
-                className={`nav-link ${activeTab === link.name ? 'active' : ''}`}
-                onClick={(e) => handleScrollTo(e, link.href)}
-              >
-                {link.name}
-              </a>
-              {activeTab === link.name && (
-                <motion.div
-                  layoutId="nav-underline"
-                  className="nav-active-underline"
-                  transition={{
-                    type: "spring",
-                    stiffness: 300,
-                    damping: 30
-                  }}
-                />
-              )}
-              <span className="nav-star-dot" />
-            </li>
-          ))}
-        </ul>
+        {/* Desktop Links Pill (Unified with Navbar Liquid Glass) */}
+        <div 
+          className="nav-desktop-pill"
+          onMouseLeave={() => {
+            // When mouse leaves the tabs area, snap back to the real active section
+            setActiveTab(scrollActiveRef.current);
+          }}
+        >
+          <ul className="nav-links">
+            {navLinks.map((link) => {
+              const isActive = activeTab === link.name;
 
+              return (
+                <li 
+                  key={link.id} 
+                  className="nav-item"
+                  onMouseEnter={() => {
+                    setActiveTab(link.name);
+                  }}
+                >
+                  <a 
+                    href={link.href} 
+                    className={`nav-link ${isActive ? 'active' : ''}`}
+                    onClick={(e) => handleScrollTo(e, link.href, link.name)}
+                  >
+                    <span className="nav-link-text">{link.name}</span>
+
+                    {/* Single Fluid Water Droplet Indicator: Zero bounce, glides smoothly and stays right at the hovered tab */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="water-droplet-active"
+                        className="nav-active-bg water-droplet"
+                        transition={{
+                          duration: 0.32,
+                          ease: [0.16, 1, 0.3, 1]
+                        }}
+                      >
+                        <span className="water-droplet-sheen" />
+                        <span className="water-droplet-caustic" />
+                      </motion.div>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Language Toggle & Socials */}
         <div className="nav-actions">
-          <a href="https://github.com/shamsuon" target="_blank" rel="noopener noreferrer" className="nav-icon-link neon-icon neon-github">
-            <Github size={24} />
-          </a>
-          <a href="https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="nav-icon-link neon-icon neon-linkedin">
-            <Linkedin size={24} />
-          </a>
-          <a href="https://x.com/AbdulazizA59247" target="_blank" rel="noopener noreferrer" className="nav-icon-link neon-icon neon-x">
-            <XIcon size={24} />
-          </a>
-          
-          <button ref={menuButtonRef} className="mobile-menu-btn" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          {/* Language Switcher Button */}
+          <button 
+            onClick={toggleLang}
+            className="lang-toggle-btn"
+            title={isAr ? 'Switch to English' : 'التحويل للعربية'}
+            aria-label="Toggle language"
+          >
+            <Globe size={16} className="lang-icon" />
+            <span className="lang-text">{isAr ? 'English' : 'عربي'}</span>
+          </button>
+
+          <div className="nav-social-icons">
+            <a 
+              href="https://github.com/shamsuon" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-action-icon"
+              title="GitHub"
+            >
+              <Github size={18} />
+            </a>
+            <a 
+              href="https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-action-icon"
+              title="LinkedIn"
+            >
+              <Linkedin size={18} />
+            </a>
+            <a 
+              href="https://x.com/AbdulazizA59247" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="nav-action-icon"
+              title="X (Twitter)"
+            >
+              <XIcon size={16} />
+            </a>
+          </div>
+
+          <button 
+            ref={menuButtonRef} 
+            className="mobile-toggle-btn"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle Navigation Menu"
+          >
+            {isOpen ? <X size={22} /> : <Menu size={22} />}
           </button>
         </div>
-      </div>
+      </LiquidGlass>
 
-      {/* Mobile Menu */}
+      {/* Mobile Drawer */}
       <AnimatePresence>
         {isOpen && (
           <>
             <motion.div
-              className="mobile-menu-backdrop"
+              className="mobile-backdrop"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.4, ease: "easeInOut" }}
               onClick={() => setIsOpen(false)}
             />
             <motion.div
               ref={mobileMenuRef}
-              className="mobile-menu glass"
-              variants={{
-                hidden: { opacity: 0, y: -20, scale: 0.95 },
-                visible: { 
-                  opacity: 1, 
-                  y: 0, 
-                  scale: 1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 100,
-                    damping: 20,
-                    staggerChildren: 0.1,
-                    delayChildren: 0.1
-                  }
-                },
-                exit: { 
-                  opacity: 0, 
-                  y: -15, 
-                  scale: 0.98,
-                  transition: { duration: 0.3 }
-                }
-              }}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              className="mobile-menu-drawer glass"
+              initial={{ opacity: 0, y: -15, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ duration: 0.2 }}
             >
-              <div className="mobile-nav-links">
+              <div className="mobile-drawer-header">
+                <div className="mobile-brand-row">
+                  <span className="brand-name">{isAr ? 'عبدالعزيز شمس' : 'Abdulaziz Shams'}</span>
+                  <span className="brand-joyboy-tag joyboy-handwritten">joyboy.dev</span>
+                </div>
+                <button 
+                  onClick={toggleLang}
+                  className="mobile-lang-btn glass"
+                >
+                  <Globe size={15} />
+                  <span>{isAr ? 'English' : 'عربي'}</span>
+                </button>
+              </div>
+
+              <div className="mobile-links-list">
                 {navLinks.map((link) => (
-                  <motion.a
-                    key={link.name}
+                  <a
+                    key={link.id}
                     href={link.href}
-                    className="mobile-nav-link"
-                    variants={{
-                      hidden: { opacity: 0, x: -10 },
-                      visible: { opacity: 1, x: 0 }
-                    }}
-                    onClick={(e) => handleScrollTo(e, link.href)}
+                    className={`mobile-nav-item ${activeTab === link.name ? 'active' : ''}`}
+                    onClick={(e) => handleScrollTo(e, link.href, link.name)}
                   >
-                    {link.name}
-                  </motion.a>
+                    <span>{link.name}</span>
+                    {activeTab === link.name && <div className="mobile-active-dot" />}
+                  </a>
                 ))}
               </div>
 
-              {/* Mobile Social Links */}
-              <motion.div 
-                className="mobile-social-links"
-                variants={{
-                  hidden: { opacity: 0, y: 10 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-              >
-                <a href="https://github.com/shamsuon" target="_blank" rel="noopener noreferrer" className="mobile-social-icon neon-github">
-                  <Github size={22} />
-                </a>
-                <a href="https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321?utm_source=share_via&utm_content=profile&utm_medium=member_android" target="_blank" rel="noopener noreferrer" className="mobile-social-icon neon-linkedin">
-                  <Linkedin size={22} />
-                </a>
-                <a href="https://x.com/AbdulazizA59247" target="_blank" rel="noopener noreferrer" className="mobile-social-icon neon-x">
-                  <XIcon size={22} />
-                </a>
-              </motion.div>
+              <div className="mobile-drawer-footer">
+                <div className="mobile-socials-row">
+                  <a href="https://github.com/shamsuon" target="_blank" rel="noopener noreferrer" className="mobile-social-btn">
+                    <Github size={20} />
+                  </a>
+                  <a href="https://www.linkedin.com/in/abdulaziz-attia-abdulaziz-86a814321" target="_blank" rel="noopener noreferrer" className="mobile-social-btn">
+                    <Linkedin size={20} />
+                  </a>
+                  <a href="https://x.com/AbdulazizA59247" target="_blank" rel="noopener noreferrer" className="mobile-social-btn">
+                    <XIcon size={18} />
+                  </a>
+                </div>
+              </div>
             </motion.div>
           </>
         )}
